@@ -14,6 +14,8 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
 
+import httpx
+
 _LOGGER = logging.getLogger(__name__)
 
 # TODO adjust the data schema to the data that you need
@@ -58,9 +60,19 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     # throw CannotConnect
     # If the authentication is wrong:
     # InvalidAuth
+    import homeassistant.util.ssl as hass_ssl
+
+    ssl_context = hass_ssl.client_context()
+
+    async with httpx.AsyncClient(verify=ssl_context) as client:
+        response = await client.get(data[CONF_HOST])
+        if response.status_code != 204:
+            raise CannotConnect
+
+
 
     # Return info that you want to store in the config entry.
-    return {"title": "Name of the device"}
+    return {"title": data[CONF_HOST]}
 
 
 class ConfigFlow(ConfigFlow, domain=DOMAIN):
