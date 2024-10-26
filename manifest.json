@@ -1,0 +1,16 @@
+{
+  "domain": "weatherstage",
+  "version": "0.0.1",
+  "name": "weatherstage.com connector",
+  "codeowners": [
+    "@jknofe"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/jknofe/ha-weatherstage",
+  "homekit": {},
+  "iot_class": "assumed_state",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": []
+}
