@@ -1,40 +1,32 @@
-"""The weatherstage.com integration."""
+# __init__.py
 
-from __future__ import annotations
-
+import logging
 from homeassistant.config_entries import ConfigEntry
-# from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-import logging
-# Create a logger for your integration
-_LOGGER = logging.getLogger(DOMAIN)
+_LOGGER = logging.getLogger(__name__)
 
-# TODO List the platforms that you want to support.
-# For your initial PR, limit it to 1 platform.
-# PLATFORMS: list[Platform] = [Platform.LIGHT]
-
-# TODO Create ConfigEntry type alias with API object
-# TODO Rename type alias and update all entry annotations
-type New_NameConfigEntry = ConfigEntry[MyApi]  # noqa: F821
-
-# TODO Update entry annotation
-async def async_setup_entry(hass: HomeAssistant, entry: New_NameConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up weatherstage.com from a config entry."""
-    _LOGGER.info("Setting up %s", DOMAIN)
+    # Retrieve the configuration data
+    config_data = entry.data
 
-    api_endpoint_url = entry.data.get("api_endpoint_url")
-    location_name = entry.data.get("location_name")
+    # Use the configuration data as needed
+    _LOGGER.info("Setting up weatherstage.com with config: %s", config_data)
 
-    _LOGGER.info("Setting up %s with endpoint %s", location_name, api_endpoint_url)
+    # Example: Store the config data in hass.data for later use
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.entry_id] = config_data
 
+    # Return True to indicate successful setup
     return True
 
-
-# TODO Update entry annotation
-async def async_unload_entry(hass: HomeAssistant, entry: New_NameConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    # return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    # Remove the config data from hass.data
+    hass.data[DOMAIN].pop(entry.entry_id)
+
+    # Return True to indicate successful unload
     return True
