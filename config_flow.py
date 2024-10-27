@@ -8,7 +8,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
-from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_URL, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
@@ -18,27 +18,13 @@ import httpx
 
 _LOGGER = logging.getLogger(__name__)
 
-# TODO adjust the data schema to the data that you need
+# Adjust the data schema to the data that you need
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_HOST): str
+        vol.Required(CONF_URL): str,
+        vol.Required(CONF_NAME): str
     }
 )
-
-
-class PlaceholderHub:
-    """Placeholder class to make tests pass.
-
-    TODO Remove this placeholder class and replace with things from your PyPI package.
-    """
-
-    def __init__(self, host: str) -> None:
-        """Initialize."""
-        self.host = host
-
-    async def authenticate(self, username: str, password: str) -> bool:
-        """Test if we can authenticate with the host."""
-        return True
 
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
@@ -46,33 +32,21 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
-    # TODO validate the data can be used to set up a connection.
+    # Validate the data can be used to set up a connection.
+    if not (data[CONF_URL].startswith("https://")):
+        raise UnsupportedProtocol
 
-    # If your PyPI package is not built with async, pass your methods
-    # to the executor:
-    # await hass.async_add_executor_job(
-    #     your_validate_func, data[CONF_USERNAME], data[CONF_PASSWORD]
-    # )
-
-    hub = PlaceholderHub(data[CONF_HOST])
-
-    # If you cannot connect:
-    # throw CannotConnect
-    # If the authentication is wrong:
-    # InvalidAuth
     import homeassistant.util.ssl as hass_ssl
 
     ssl_context = hass_ssl.client_context()
 
     async with httpx.AsyncClient(verify=ssl_context) as client:
-        response = await client.get(data[CONF_HOST])
+        response = await client.get(data[CONF_URL])
         if response.status_code != 204:
             raise CannotConnect
 
-
-
     # Return info that you want to store in the config entry.
-    return {"title": data[CONF_HOST]}
+    return {"title": data[CONF_NAME]}
 
 
 class ConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -89,9 +63,9 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             try:
                 info = await validate_input(self.hass, user_input)
             except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except InvalidAuth:
-                errors["base"] = "invalid_auth"
+                errors["base"] = "HTTP-connection to Endpoint failed!"
+            except UnsupportedProtocol:
+                errors["base"] = "URL is malformed and should start with https://"
             except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -106,6 +80,5 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
 
-
-class InvalidAuth(HomeAssistantError):
-    """Error to indicate there is invalid auth."""
+class UnsupportedProtocol(HomeAssistantError):
+    """URL is malformed."""
