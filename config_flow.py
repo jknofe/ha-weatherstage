@@ -12,7 +12,7 @@ from homeassistant.const import CONF_URL, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_TEMP_SENS, CONF_HUMI_SENS, CONF_PRES_SENS
 
 import httpx
 
@@ -22,7 +22,10 @@ _LOGGER = logging.getLogger(__name__)
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_URL): str,
-        vol.Required(CONF_NAME): str
+        vol.Required(CONF_NAME): str,
+        vol.Optional(CONF_TEMP_SENS): str,
+        vol.Optional(CONF_HUMI_SENS): str,
+        vol.Optional(CONF_PRES_SENS): str,
     }
 )
 
