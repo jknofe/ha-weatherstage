@@ -6,6 +6,12 @@ from homeassistant.config_entries import ConfigEntry
 # from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
+from .const import DOMAIN
+
+import logging
+# Create a logger for your integration
+_LOGGER = logging.getLogger(DOMAIN)
+
 # TODO List the platforms that you want to support.
 # For your initial PR, limit it to 1 platform.
 # PLATFORMS: list[Platform] = [Platform.LIGHT]
@@ -14,18 +20,15 @@ from homeassistant.core import HomeAssistant
 # TODO Rename type alias and update all entry annotations
 type New_NameConfigEntry = ConfigEntry[MyApi]  # noqa: F821
 
-
 # TODO Update entry annotation
 async def async_setup_entry(hass: HomeAssistant, entry: New_NameConfigEntry) -> bool:
     """Set up weatherstage.com from a config entry."""
+    _LOGGER.info("Setting up %s", DOMAIN)
 
-    # TODO 1. Create API instance
-    # TODO 2. Validate the API connection (and authentication)
-    # TODO 3. Store an API object for your platforms to access
-    # entry.runtime_data = MyAPI(...)
+    api_endpoint_url = entry.data.get("api_endpoint_url")
+    location_name = entry.data.get("location_name")
 
-    # await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    hass.states.async_set("hello_state.world", "Paulus")
+    _LOGGER.info("Setting up %s with endpoint %s", location_name, api_endpoint_url)
 
     return True
 
