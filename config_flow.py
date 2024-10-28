@@ -7,7 +7,7 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow, FlowResult
 from homeassistant.const import CONF_URL, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -23,9 +23,6 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_URL): str,
         vol.Required(CONF_NAME): str,
-        vol.Optional(CONF_TEMP_SENS): str,
-        vol.Optional(CONF_HUMI_SENS): str,
-        vol.Optional(CONF_PRES_SENS): str,
     }
 )
 
@@ -79,7 +76,84 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
         )
 
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        """Create the options flow."""
+        return OptionsFlowHandler(config_entry)
+    # async def async_step_reconfigure(
+    #     self, user_input: dict[str, Any] | None = None
+    # ) -> ConfigFlowResult:
+    #     """Handle the reconfiguration step."""
+    #     errors: dict[str, str] = {}
+    #     if user_input is not None:
+    #         try:
+    #             info = await validate_input(self.hass, user_input)
+    #         except CannotConnect:
+    #             errors["base"] = "HTTP-connection to Endpoint failed!"
+    #         except UnsupportedProtocol:
+    #             errors["base"] = "URL is malformed and should start with https://"
+    #         except Exception:
+    #             _LOGGER.exception("Unexpected exception")
+    #             errors["base"] = "unknown"
+    #         else:
+    #             entry = await self.async_set_unique_id(self.unique_id)
+    #             self.hass.config_entries.async_update_entry(entry, data=user_input)
+    #             return self.async_create_entry(title=info["title"], data=user_input)
 
+    #     return self.async_show_form(
+    #         step_id="reconfigure", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
+    #     )
+
+
+class OptionsFlowHandler(OptionsFlow):
+    """Handle an options flow for weatherstage.com."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    # async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    #     """Manage the options."""
+    #     return await self.async_step_user()
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        "show_things",
+                        default=self.config_entry.options.get("show_things"),
+                    ): bool
+                }
+            ),
+        )
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        """Handle the options form."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        # Define the schema for the options form
+        OPTIONS_SCHEMA = vol.Schema(
+            {
+                vol.Required("temperature"): str,
+                vol.Required("humidity"): str,
+                vol.Required("pressure"): str,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=OPTIONS_SCHEMA,
+        )
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
 
