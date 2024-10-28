@@ -12,9 +12,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up weatherstage.com from a config entry."""
     # Retrieve the configuration data
     config_data = entry.data
+    config_options = entry.options
 
     # Use the configuration data as needed
     _LOGGER.info("Setting up weatherstage.com with config: %s", config_data)
+    _LOGGER.info("Setting up weatherstage.com with options: %s", config_options)
 
     # Example: Store the config data in hass.data for later use
     hass.data.setdefault(DOMAIN, {})
