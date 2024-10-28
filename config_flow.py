@@ -5,16 +5,26 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import httpx
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow, FlowResult
-from homeassistant.const import CONF_URL, CONF_NAME
+from homeassistant.config_entries import (
+    ConfigFlow,
+    ConfigFlowResult,
+    FlowResult,
+    OptionsFlow,
+)
+from homeassistant.const import CONF_NAME, CONF_URL
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN, CONF_TEMP_SENS, CONF_HUMI_SENS, CONF_PRES_SENS, CONF_STATUS_REPORT
-
-import httpx
+from .const import (
+    CONF_HUMI_SENS,
+    CONF_PRES_SENS,
+    CONF_STATUS_REPORT,
+    CONF_TEMP_SENS,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -131,16 +141,32 @@ class OptionsFlowHandler(OptionsFlow):
             data_schema=vol.Schema(
                 {
                     # report status of last transmission
-                    vol.Optional(CONF_STATUS_REPORT, default=self.config_entry.options.get(CONF_STATUS_REPORT, False)): bool,
+                    vol.Optional(
+                        CONF_STATUS_REPORT,
+                        default=self.config_entry.options.get(
+                            CONF_STATUS_REPORT, False
+                        ),
+                    ): bool,
                     # sensor names
-                    vol.Required(CONF_TEMP_SENS, default=self.config_entry.options.get(CONF_TEMP_SENS)): str,
-                    vol.Required(CONF_HUMI_SENS, default=self.config_entry.options.get(CONF_HUMI_SENS)): str,
-                    vol.Required(CONF_PRES_SENS, default=self.config_entry.options.get(CONF_PRES_SENS)): str,
+                    vol.Required(
+                        CONF_TEMP_SENS,
+                        default=self.config_entry.options.get(CONF_TEMP_SENS),
+                    ): str,
+                    vol.Required(
+                        CONF_HUMI_SENS,
+                        default=self.config_entry.options.get(CONF_HUMI_SENS),
+                    ): str,
+                    vol.Required(
+                        CONF_PRES_SENS,
+                        default=self.config_entry.options.get(CONF_PRES_SENS),
+                    ): str,
                 }
-            )
+            ),
         )
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle the options form."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
@@ -149,8 +175,11 @@ class OptionsFlowHandler(OptionsFlow):
             step_id="user",
             data_schema=OPTIONS_SCHEMA,
         )
+
+
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
+
 
 class UnsupportedProtocol(HomeAssistantError):
     """URL is malformed."""
