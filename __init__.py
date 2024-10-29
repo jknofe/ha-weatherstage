@@ -45,11 +45,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass, config_options[CONF_PRES_SENS], WeatherstagePublisher.set_pres_abs
     )
 
-    # for conf_entry in (CONF_TEMP_SENS, CONF_HUMI_SENS, CONF_PRES_SENS):
-    #     # _LOGGER.info("Create %s", config_options[conf_entry])
-    #     async_track_state_change_event(
-    #         hass, config_options[conf_entry], handle_sensor_change
-    #     )
     # Return True to indicate successful setup
     return True
 
