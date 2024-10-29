@@ -33,29 +33,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = config_data
 
-    # Define the callback function to handle state changes
-    async def handle_sensor_change(event):
-        # _LOGGER.info("Even Data: %s", event.data)
-        new_state = event.data.get("new_state")
-        old_state = event.data.get("old_state")
-        # Access the friendly_name from the new state's attributes
-        entity_id = new_state.entity_id
-        # Access the unit of measurement from the new state's attributes
-        unit_of_measurement = new_state.attributes.get("unit_of_measurement")
-
-        if new_state is not None:
-            new_value = new_state.state
-            old_value = old_state.state if old_state else "unknown"
-            _LOGGER.info(
-                "%s, changed from %s to %s, in %s @ %s",
-                entity_id,
-                old_value,
-                new_value,
-                unit_of_measurement,
-                new_state.last_changed,
-            )
-            # Here you can add any logic to handle the new value
-
     # Register the state change listener for the sensor entity
     WeatherstagePublisher = wsp(config_data[CONF_URL], config_options)
     async_track_state_change_event(
