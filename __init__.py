@@ -14,46 +14,9 @@ from .const import (
     CONF_TEMP_SENS,
     DOMAIN,
 )
+from .weatherstage import WeatherstagePublisher as wsp
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class WeatherstagePublisher:
-    """Weatherstage.com http publisher."""
-
-    def __init__(self, api_endpoint_url: str, config_options):
-        self.config_options = config_options
-        self.api_endpoint_url = api_endpoint_url
-        self.api_data = {
-            "model": "Home Assistant Integration",
-            "version": "0.0.1",
-            "temperature": {"value": 12.1, "unit": "c"},
-            "humidity": {"value": 65, "unit": "%"},
-            "barometric_pressure_absolute": {"value": 995, "unit": "hpa"},
-            "barometric_pressure_relative": {"value": 995, "unit": "hpa"},
-        }
-        _LOGGER.info("WeatherstagePublisher.__init__ %s", api_endpoint_url)
-
-    def set_temp(self, event):
-        """Publish sensor value to api endpoint."""
-        new_state = event.data.get("new_state")
-        old_state = event.data.get("old_state")
-        _LOGGER.info("Sensor value changed from %s to %s", old_value, new_value)
-        return True
-
-    def set_humi(self, event):
-        """Publish sensor value to api endpoint."""
-        new_state = event.data.get("new_state")
-        old_state = event.data.get("old_state")
-        _LOGGER.info("Sensor value changed from %s to %s", old_value, new_value)
-        return True
-
-    def set_pres(self, event):
-        """Publish sensor value to api endpoint."""
-        new_state = event.data.get("new_state")
-        old_state = event.data.get("old_state")
-        _LOGGER.info("Sensor value changed from %s to %s", old_value, new_value)
-        return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -94,14 +57,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # Here you can add any logic to handle the new value
 
     # Register the state change listener for the sensor entity
-    MyWeatherstagePublisher = WeatherstagePublisher(
-        config_data[CONF_URL], config_options
+    WeatherstagePublisher = wsp(config_data[CONF_URL], config_options)
+    async_track_state_change_event(
+        hass, config_options[CONF_TEMP_SENS], WeatherstagePublisher.set_temp
     )
-    for conf_entry in (CONF_TEMP_SENS, CONF_HUMI_SENS, CONF_PRES_SENS):
-        # _LOGGER.info("Create %s", config_options[conf_entry])
-        async_track_state_change_event(
-            hass, config_options[conf_entry], handle_sensor_change
-        )
+    async_track_state_change_event(
+        hass, config_options[CONF_HUMI_SENS], WeatherstagePublisher.set_humi
+    )
+    async_track_state_change_event(
+        hass, config_options[CONF_PRES_SENS], WeatherstagePublisher.set_pres_abs
+    )
+
+    # for conf_entry in (CONF_TEMP_SENS, CONF_HUMI_SENS, CONF_PRES_SENS):
+    #     # _LOGGER.info("Create %s", config_options[conf_entry])
+    #     async_track_state_change_event(
+    #         hass, config_options[conf_entry], handle_sensor_change
+    #     )
     # Return True to indicate successful setup
     return True
 
