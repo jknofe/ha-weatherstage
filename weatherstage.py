@@ -3,6 +3,7 @@
 import logging
 
 import httpx
+import json
 
 import homeassistant.util.ssl as hass_ssl
 
@@ -24,6 +25,12 @@ class WeatherstagePublisher:
             "barometric_pressure_relative": {"value": None, "unit": "hPa"},
         }
 
+        self.api_data_old = {
+            "model": "Home Assistant Integration",
+            "version": "0.0.1",
+            "temp_value": "12.1",
+        }
+
     async def _send_data(self):
         """Publish sensor data to api endpoint."""
         _LOGGER.info("Publish: %s", self.api_data)
@@ -31,8 +38,12 @@ class WeatherstagePublisher:
         ssl_context = hass_ssl.client_context()
 
         async with httpx.AsyncClient(verify=ssl_context) as client:
-            response = await client.post(self.api_endpoint_url, json=self.api_data)
+            json_data = json.dumps(self.api_data_old)
+            # json_data = json.dumps(self.api_data)
+            _LOGGER.info("JSON: %s", json_data)
+            response = await client.post(self.api_endpoint_url, data=json_data)
             _LOGGER.info("Response: %s", response)
+            _LOGGER.info("Method: %s", response.request.method)
             # if response.status_code != 204:
             #     raise CannotConnect
         return True
