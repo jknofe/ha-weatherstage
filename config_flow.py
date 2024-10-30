@@ -17,6 +17,7 @@ from homeassistant.config_entries import (
 from homeassistant.const import CONF_NAME, CONF_URL
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.selector import EntitySelector
 
 from .const import (
     CONF_HUMI_SENS,
@@ -151,15 +152,15 @@ class OptionsFlowHandler(OptionsFlow):
                     vol.Required(
                         CONF_TEMP_SENS,
                         default=self.config_entry.options.get(CONF_TEMP_SENS),
-                    ): str,
+                    ): EntitySelector({"domain": "sensor"}),
                     vol.Required(
                         CONF_HUMI_SENS,
                         default=self.config_entry.options.get(CONF_HUMI_SENS),
-                    ): str,
+                    ): EntitySelector({"domain": "sensor"}),
                     vol.Required(
                         CONF_PRES_SENS,
                         default=self.config_entry.options.get(CONF_PRES_SENS),
-                    ): str,
+                    ): EntitySelector({"domain": "sensor"}),
                 }
             ),
         )
@@ -175,7 +176,6 @@ class OptionsFlowHandler(OptionsFlow):
             step_id="user",
             data_schema=OPTIONS_SCHEMA,
         )
-
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""

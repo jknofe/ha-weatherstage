@@ -32,7 +32,6 @@ class WeatherstagePublisher:
             "barometric_pressure_absolute": {"value": None, "unit": "hPa"},
             "barometric_pressure_relative": {"value": None, "unit": "hPa"},
         }
-        _LOGGER.info("WeatherstagePublisher.__init__ %s", api_endpoint_url)
 
     async def _send_data(self):
         """Publish sensor data to api endpoint."""
