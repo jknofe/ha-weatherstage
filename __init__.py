@@ -12,6 +12,9 @@ from .weatherstage import WeatherstagePublisher as wsp
 
 _LOGGER = logging.getLogger(__name__)
 
+async def update_listener(hass, entry):
+    """Handle options update."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up weatherstage.com from a config entry."""
@@ -42,6 +45,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass, config_options[CONF_PRES_SENS], WeatherstagePublisher.set_pres_abs
         )
 
+    entry.async_on_unload(entry.add_update_listener(update_listener))
     # Return True to indicate successful setup
     return True
 
