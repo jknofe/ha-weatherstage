@@ -38,14 +38,16 @@ class WeatherstagePublisher:
         ssl_context = hass_ssl.client_context()
 
         async with httpx.AsyncClient(verify=ssl_context) as client:
-            json_data = json.dumps(self.api_data_old)
-            # json_data = json.dumps(self.api_data)
+            # json_data = json.dumps(self.api_data_old)
+            json_data = json.dumps(self.api_data)
             _LOGGER.info("JSON: %s", json_data)
             response = await client.post(self.api_endpoint_url, data=json_data)
             _LOGGER.info("Response: %s", response)
             _LOGGER.info("Method: %s", response.request.method)
-            # if response.status_code != 204:
-            #     raise CannotConnect
+            if response.status_code != 204:
+                _LOGGER.error(
+                    "API post failed: resp: %s, request: %s", response, response.request
+                )
         return True
 
     async def _set_event_data(self, event, api_item_name):
