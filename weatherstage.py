@@ -2,18 +2,9 @@
 
 import logging
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_NAME, CONF_URL
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.event import async_track_state_change_event
+import httpx
 
-from .const import (
-    CONF_HUMI_SENS,
-    CONF_PRES_SENS,
-    CONF_STATUS_REPORT,
-    CONF_TEMP_SENS,
-    DOMAIN,
-)
+import homeassistant.util.ssl as hass_ssl
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,6 +27,14 @@ class WeatherstagePublisher:
     async def _send_data(self):
         """Publish sensor data to api endpoint."""
         _LOGGER.info("Publish: %s", self.api_data)
+
+        ssl_context = hass_ssl.client_context()
+
+        async with httpx.AsyncClient(verify=ssl_context) as client:
+            response = await client.post(self.api_endpoint_url, json=self.api_data)
+            _LOGGER.info("Response: %s", response)
+            # if response.status_code != 204:
+            #     raise CannotConnect
         return True
 
     async def _set_event_data(self, event, api_item_name):
