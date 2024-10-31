@@ -19,10 +19,10 @@ class WeatherstagePublisher:
         self.api_data = {
             "model": "Home Assistant Integration",
             "version": "0.0.1",
-            "temperature": {"value": None, "unit": "°C"},
+            "temperature": {"value": None, "unit": "c"},
             "humidity": {"value": None, "unit": "%"},
-            "barometric_pressure_absolute": {"value": None, "unit": "hPa"},
-            "barometric_pressure_relative": {"value": None, "unit": "hPa"},
+            "barometric_pressure_absolute": {"value": None, "unit": "hpa"},
+            "barometric_pressure_relative": {"value": None, "unit": "hpa"},
         }
 
         self.api_data_old = {
@@ -42,8 +42,6 @@ class WeatherstagePublisher:
             json_data = json.dumps(self.api_data)
             _LOGGER.info("JSON: %s", json_data)
             response = await client.post(self.api_endpoint_url, data=json_data)
-            _LOGGER.info("Response: %s", response)
-            _LOGGER.info("Method: %s", response.request.method)
             if response.status_code != 204:
                 _LOGGER.error(
                     "API post failed: resp: %s, request: %s", response, response.request
@@ -54,10 +52,20 @@ class WeatherstagePublisher:
         """Fill api data dict."""
         _LOGGER.info("Event: %s", event)
         new_state = event.data.get("new_state")
-        self.api_data[api_item_name]["value"] = new_state.state
-        self.api_data[api_item_name]["unit"] = new_state.attributes.get(
-            "unit_of_measurement"
-        )
+        self.api_data[api_item_name]["value"] = round(float(new_state.state), 1)
+        # convert unit of measurement to the one used by the API
+        unit_of_measurement = new_state.attributes.get("unit_of_measurement")
+        if unit_of_measurement == "°C":
+            unit_of_measurement = "c"
+        elif unit_of_measurement == "°F":
+            unit_of_measurement = "f"
+        elif unit_of_measurement == "%":
+            unit_of_measurement = "%"
+        elif unit_of_measurement == "hPa":
+            unit_of_measurement = "hpa"
+        else:
+            pass
+        self.api_data[api_item_name]["unit"] = unit_of_measurement
         await self._send_data()
         return True
 
@@ -74,6 +82,7 @@ class WeatherstagePublisher:
     async def set_pres_abs(self, event):
         """Set presure value."""
         await self._set_event_data(event, "barometric_pressure_absolute")
+        await self._set_event_data(event, "barometric_pressure_relative")
         return True
 
     # Define the callback function to handle state changes
