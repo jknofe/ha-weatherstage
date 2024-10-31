@@ -29,11 +29,19 @@ class WeatherstagePublisher:
             "model": "Home Assistant Integration",
             "version": "0.0.1",
             "temp_value": "12.1",
+            "temp_unit": "c",
+            "humidity_value": 80,
+        }
+        # map unit to api presentation
+        self.unit_conversion = {
+            "°C": "c",
+            "°F": "f",
+            "%": "%",
+            "hPa": "hpa"
         }
 
     async def _send_data(self):
         """Publish sensor data to api endpoint."""
-        _LOGGER.info("Publish: %s", self.api_data)
 
         ssl_context = hass_ssl.client_context()
 
@@ -46,6 +54,8 @@ class WeatherstagePublisher:
                 _LOGGER.error(
                     "API post failed: resp: %s, request: %s", response, response.request
                 )
+            else:
+                _LOGGER.info("API post success: %s", response)
         return True
 
     async def _set_event_data(self, event, api_item_name):
@@ -55,16 +65,7 @@ class WeatherstagePublisher:
         self.api_data[api_item_name]["value"] = round(float(new_state.state), 1)
         # convert unit of measurement to the one used by the API
         unit_of_measurement = new_state.attributes.get("unit_of_measurement")
-        if unit_of_measurement == "°C":
-            unit_of_measurement = "c"
-        elif unit_of_measurement == "°F":
-            unit_of_measurement = "f"
-        elif unit_of_measurement == "%":
-            unit_of_measurement = "%"
-        elif unit_of_measurement == "hPa":
-            unit_of_measurement = "hpa"
-        else:
-            pass
+        unit_of_measurement = self.unit_conversion.get(unit_of_measurement, unit_of_measurement)
         self.api_data[api_item_name]["unit"] = unit_of_measurement
         await self._send_data()
         return True
