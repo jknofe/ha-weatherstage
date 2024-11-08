@@ -49,7 +49,8 @@ class WeatherstagePublisher:
             # json_data = json.dumps(self.api_data_old)
             json_data = json.dumps(self.api_data)
             _LOGGER.info("JSON: %s", json_data)
-            response = await client.post(self.api_endpoint_url, data=json_data)
+            headers = {"content-type": "application/json"}
+            response = await client.post(self.api_endpoint_url, data=json_data, headers=headers)
             if response.status_code != 204:
                 _LOGGER.error(
                     "API post failed: resp: %s, request: %s", response, response.request
