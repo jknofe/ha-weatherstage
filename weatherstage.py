@@ -33,16 +33,17 @@ class WeatherstagePublisher:
             "humidity_value": 80,
         }
         # map unit to api presentation
-        self.unit_conversion = {
-            "°C": "c",
-            "°F": "f",
-            "%": "%",
-            "hPa": "hpa"
-        }
+        self.unit_conversion = {"°C": "c", "°F": "f", "%": "%", "hPa": "hpa"}
 
     async def _send_data(self):
         """Publish sensor data to api endpoint."""
-
+        # check if api data dict in filled with all values
+        for api_item in self.api_data:
+            if "value" in api_item:
+                if api_item["value"] is None:
+                    # skip api send if a value is still not filled
+                    _LOGGER.info("API post skipped: %s", api_item)
+                    return False
         ssl_context = hass_ssl.client_context()
 
         async with httpx.AsyncClient(verify=ssl_context) as client:
@@ -50,7 +51,9 @@ class WeatherstagePublisher:
             json_data = json.dumps(self.api_data)
             _LOGGER.info("JSON: %s", json_data)
             headers = {"content-type": "application/json"}
-            response = await client.post(self.api_endpoint_url, data=json_data, headers=headers)
+            response = await client.post(
+                self.api_endpoint_url, data=json_data, headers=headers
+            )
             if response.status_code != 204:
                 _LOGGER.error(
                     "API post failed: resp: %s, request: %s", response, response.request
@@ -66,7 +69,9 @@ class WeatherstagePublisher:
         self.api_data[api_item_name]["value"] = round(float(new_state.state), 1)
         # convert unit of measurement to the one used by the API
         unit_of_measurement = new_state.attributes.get("unit_of_measurement")
-        unit_of_measurement = self.unit_conversion.get(unit_of_measurement, unit_of_measurement)
+        unit_of_measurement = self.unit_conversion.get(
+            unit_of_measurement, unit_of_measurement
+        )
         self.api_data[api_item_name]["unit"] = unit_of_measurement
         await self._send_data()
         return True
