@@ -1,9 +1,9 @@
 """WeatherstagePublisher class for weatherstage.com integration."""
 
+import json
 import logging
 
 import httpx
-import json
 
 import homeassistant.util.ssl as hass_ssl
 
@@ -24,28 +24,22 @@ class WeatherstagePublisher:
             "barometric_pressure_absolute": {"value": None, "unit": "hpa"},
             "barometric_pressure_relative": {"value": None, "unit": "hpa"},
         }
-
-        self.api_data_old = {
-            "model": "Home Assistant Integration",
-            "version": "0.0.1",
-            "temp_value": "12.1",
-            "temp_unit": "c",
-            "humidity_value": 80,
-        }
         # map unit to api presentation
         self.unit_conversion = {"°C": "c", "°F": "f", "%": "%", "hPa": "hpa"}
 
     async def _send_data(self):
         """Publish sensor data to api endpoint."""
-        # check if api data dict in filled with all values
-        for api_item in self.api_data:
-            if "value" in api_item:
-                if api_item["value"] is None:
-                    # skip api send if a value is still not filled
-                    _LOGGER.info("API post skipped: %s", api_item)
-                    return False
-        ssl_context = hass_ssl.client_context()
 
+        # check if api data dict in filled with all values
+        for api_item_name  in self.api_data:
+            if "value" in self.api_data[api_item_name]:
+                if not isinstance(self.api_data[api_item_name]["value"], (int, float)):
+                    # skip api send if a value is still not filled
+                    _LOGGER.info("API post skipped: %s", self.api_data[api_item_name])
+                    return False
+
+        # send data to api
+        ssl_context = hass_ssl.client_context()
         async with httpx.AsyncClient(verify=ssl_context) as client:
             # json_data = json.dumps(self.api_data_old)
             json_data = json.dumps(self.api_data)
@@ -66,7 +60,11 @@ class WeatherstagePublisher:
         """Fill api data dict."""
         _LOGGER.info("Event: %s", event)
         new_state = event.data.get("new_state")
-        self.api_data[api_item_name]["value"] = round(float(new_state.state), 1)
+        # fill api data dict only if new state is available
+        try:
+            self.api_data[api_item_name]["value"] = round(float(new_state.state), 1)
+        except (ValueError, TypeError):
+            self.api_data[api_item_name]["value"] = None
         # convert unit of measurement to the one used by the API
         unit_of_measurement = new_state.attributes.get("unit_of_measurement")
         unit_of_measurement = self.unit_conversion.get(
@@ -87,14 +85,14 @@ class WeatherstagePublisher:
         return True
 
     async def set_pres_abs(self, event):
-        """Set presure value."""
+        """Set pressure value."""
         await self._set_event_data(event, "barometric_pressure_absolute")
         await self._set_event_data(event, "barometric_pressure_relative")
         return True
 
     # Define the callback function to handle state changes
     async def print_event_debug(event):
-        """Print event data for debuggin."""
+        """Print event data for debugging."""
         # _LOGGER.info("Even Data: %s", event.data)
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")
