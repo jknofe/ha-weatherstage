@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 import voluptuous as vol
 
+from homeassistant import config_entries
 from homeassistant.config_entries import (
     ConfigFlow,
     ConfigFlowResult,
@@ -124,7 +125,13 @@ class OptionsFlowHandler(OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        super().__init__()
+        self._config_entry = config_entry
+
+    @property
+    def config_entry(self) -> config_entries.ConfigEntry:
+        """Return the config entry."""
+        return self._config_entry
 
     # async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
     #     """Manage the options."""

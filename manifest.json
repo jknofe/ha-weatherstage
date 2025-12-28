@@ -1,6 +1,6 @@
 {
   "domain": "weatherstage",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "name": "weatherstage.com connector",
   "codeowners": [
     "@jknofe"
