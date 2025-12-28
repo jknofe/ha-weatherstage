@@ -91,7 +91,7 @@ class WeatherstagePublisher:
         return True
 
     # Define the callback function to handle state changes
-    async def print_event_debug(event):
+    async def print_event_debug(self, event):
         """Print event data for debugging."""
         # _LOGGER.info("Even Data: %s", event.data)
         new_state = event.data.get("new_state")
